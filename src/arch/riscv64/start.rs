@@ -83,6 +83,10 @@ unsafe extern "C" fn start(args_ptr: *const KernelArgs) -> ! {
 
             graphical_debug::init(args.env());
 
+            // FIX: Set up exception handler BEFORE any hardware probing
+            // This prevents illegal instruction exceptions from hanging the system
+            interrupt::init();
+
             if let Some(dtb) = &dtb {
                 init_early(dtb);
             }
@@ -93,8 +97,6 @@ unsafe extern "C" fn start(args_ptr: *const KernelArgs) -> ! {
             if let Some(dtb) = &dtb {
                 device::dump_fdt(&dtb);
             }
-
-            interrupt::init();
 
             // Initialize RMM
             crate::startup::memory::init(&args, None, None);

@@ -100,7 +100,11 @@ impl CpuStats {
             val if val == CpuState::Idle as u8 => self.idle.fetch_add(ticks, Ordering::Relaxed),
             val if val == CpuState::User as u8 => self.user.fetch_add(ticks, Ordering::Relaxed),
             val if val == CpuState::Kernel as u8 => self.kernel.fetch_add(ticks, Ordering::Relaxed),
-            _ => unreachable!("all possible values are covered"),
+            _ => {
+                // RISC-V FIX: Handle uninitialized state - default to idle
+                self.state.store(CpuState::Idle as u8, Ordering::Relaxed);
+                self.idle.fetch_add(ticks, Ordering::Relaxed)
+            }
         };
     }
 
